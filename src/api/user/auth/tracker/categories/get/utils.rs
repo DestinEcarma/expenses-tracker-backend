@@ -8,6 +8,21 @@ use crate::api::{
 
 use super::defs::{Category, CategoryCal};
 
+pub async fn get_category(db: &ExtensionDB, id: &Thing) -> Result<Value, Error> {
+    let category = db
+        .query(DBGlobalQuery::SELECT_CATEGORY)
+        .bind(("category_id", id))
+        .await
+        .map_err(|e| Error::Server(e.to_string()))?
+        .take::<Option<Category>>(0)
+        .map_err(|e| Error::Server(e.to_string()))?
+        .unwrap();
+
+    let category = merge_json(category, get_transactions(db, id).await?);
+
+    Ok(merge_json(category, json!({"id": id.id.to_raw()})))
+}
+
 pub async fn get_categories(db: &ExtensionDB, user_id: &Thing) -> Result<Vec<Value>, Error> {
     let categories = db
         .query(DBGlobalQuery::SELECT_USER_GET_CATEGORIES)
@@ -21,18 +36,7 @@ pub async fn get_categories(db: &ExtensionDB, user_id: &Thing) -> Result<Vec<Val
     let mut result = Vec::<Value>::new();
 
     for id in categories.out() {
-        let category = db
-            .query(DBGlobalQuery::SELECT_CATEGORY)
-            .bind(("category_id", id))
-            .await
-            .map_err(|e| Error::Server(e.to_string()))?
-            .take::<Option<Category>>(0)
-            .map_err(|e| Error::Server(e.to_string()))?
-            .unwrap();
-
-        let category = merge_json(category, get_transactions(db, id).await?);
-
-        result.push(merge_json(category, json!({"id": id.id.to_raw()})));
+        result.push(get_category(db, id).await?);
     }
 
     Ok(result)

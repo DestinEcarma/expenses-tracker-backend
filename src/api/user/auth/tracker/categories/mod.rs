@@ -1,6 +1,9 @@
+mod defs;
 mod delete;
 mod get;
+mod patch;
 mod post;
+mod utils;
 
 use axum::{
     routing::{self},
@@ -9,6 +12,11 @@ use axum::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", routing::get(get::handler).post(post::handler))
-        .route("/:id", routing::delete(delete::handler))
+        .route("/", routing::get(get::handler_many).post(post::handler))
+        .route(
+            "/:id",
+            routing::get(get::handler_one)
+                .patch(patch::handler)
+                .delete(delete::handler),
+        )
 }

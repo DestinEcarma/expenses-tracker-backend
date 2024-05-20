@@ -1,4 +1,3 @@
-mod defs;
 mod utils;
 
 use axum::{http::StatusCode, response::IntoResponse, Json};
@@ -6,13 +5,10 @@ use serde_json::json;
 
 use crate::api::{
     db::defs::ExtensionDB,
-    user::auth::{
-        ctx::RawUser,
-        tracker::categories::post::utils::{add_category, validate_payload},
-    },
+    user::auth::{ctx::RawUser, tracker::categories::post::utils::add_category},
 };
 
-use self::defs::CategoryPayload;
+use super::{defs::CategoryPayload, utils::validate_payload};
 
 pub async fn handler(
     db: ExtensionDB,

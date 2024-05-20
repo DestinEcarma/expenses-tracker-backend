@@ -29,5 +29,5 @@ pub async fn handler(
 
     add_auth_token(&cookies, user_login.id().id.to_raw());
 
-    (StatusCode::OK).into_response()
+    (StatusCode::CREATED).into_response()
 }

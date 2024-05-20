@@ -11,10 +11,8 @@ pub struct DBTables;
 
 impl DBTables {
     pub const USER: &'static str = "user";
-    // pub const CATEGORY: &'static str = "category";
-    // pub const TRANSACTION: &'static str = "transaction";
-    // pub const USER_CATEGORIES: &'static str = "user_categories";
-    // pub const USER_TRANSACTIONS: &'static str = "user_transactions";
+    pub const CATEGORY: &'static str = "category";
+    pub const TRANSACTION: &'static str = "transaction";
 }
 
 pub struct DBGlobalQuery;
@@ -32,6 +30,7 @@ impl DBGlobalQuery {
     pub const SELECT_CATEGORY_GET_TRANSACTIONS: &'static str = "SELECT ->category_transaction.out as out FROM $category_id";
     pub const CATEGORY_OWNERSHIP: &'static str = "fn::category_ownership($user_id, $category_id)";
     pub const TRANSACTION_OWNERSHIP: &'static str = "fn::transaction_ownership($category_id, $transaction_id)";
+    pub const UPDATE_CATEGORY: &'static str = "UPDATE $category_id SET name=$name, icon=$icon";
     pub const DELETE_TRANSACTION: &'static str = "DELETE $transaction_id";
     pub const DELETE_CATEGORY: &'static str = "DELETE $category_id";
 }

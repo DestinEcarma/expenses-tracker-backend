@@ -61,9 +61,9 @@ impl IntoResponse for Error {
     }
 }
 
-pub struct CookiesNames;
+pub struct CookieNames;
 
-impl CookiesNames {
+impl CookieNames {
     pub const AUTH_TOKEN: &'static str = "auth-token";
 }
 

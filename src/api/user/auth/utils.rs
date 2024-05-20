@@ -11,8 +11,8 @@ use surrealdb::sql::Thing;
 use tower_cookies::Cookies;
 
 use crate::api::{
-    db::defs::{DBGlobalQuery, ExtensionDB},
-    defs::{CookiesNames, Error, Record},
+    db::defs::{DBGlobalQuery, DBTables, ExtensionDB},
+    defs::{CookieNames, Error, Record},
 };
 
 use super::ctx::RawUser;
@@ -36,11 +36,11 @@ impl<T: Send + Sync> FromRequestParts<T> for RawUser {
         let db = parts.extract::<ExtensionDB>().await.unwrap();
 
         let auth_token = cookies
-            .get(CookiesNames::AUTH_TOKEN)
+            .get(CookieNames::AUTH_TOKEN)
             .map(|c| c.value().to_string());
 
         let id = auth_token.ok_or(Error::AuthFailNoAuthTokenCookie)?;
-        let user_id = Thing::from(("user", id.as_str()));
+        let user_id = Thing::from((DBTables::USER, id.as_str()));
 
         match get_user(&db, &user_id).await {
             Err(error) => Err(error),
@@ -49,7 +49,7 @@ impl<T: Send + Sync> FromRequestParts<T> for RawUser {
     }
 }
 
-async fn get_user(db: &ExtensionDB, user_id: &Thing) -> Result<(), Error> {
+pub async fn get_user(db: &ExtensionDB, user_id: &Thing) -> Result<(), Error> {
     let record = db
         .query(DBGlobalQuery::SELECT_USER_ID)
         .bind(("user_id", user_id))
