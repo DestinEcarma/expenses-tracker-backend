@@ -7,7 +7,7 @@ pub fn add_auth_token(cookies: &Cookies, token: String) {
 
     cookie.set_http_only(true);
     cookie.set_path("/");
-    cookie.set_max_age(Duration::hours(1));
+    cookie.set_max_age(Duration::days(30));
 
     cookies.add(cookie);
 }
