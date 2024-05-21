@@ -10,22 +10,22 @@ use tower_cookies::Cookies;
 
 #[derive(Debug, Deserialize)]
 pub struct SignUpPayLoad {
-    pub username: String,
-    pub password: String,
+	pub username: String,
+	pub password: String,
 }
 
 pub async fn handler(
-    cookies: Cookies,
-    db: ExtensionDB,
-    payload: Json<SignUpPayLoad>,
+	cookies: Cookies,
+	db: ExtensionDB,
+	payload: Json<SignUpPayLoad>,
 ) -> Result<impl IntoResponse> {
-    username_exists(&db, &payload.username).await?;
-    validate_payload(&payload).await?;
+	username_exists(&db, &payload.username).await?;
+	validate_payload(&payload).await?;
 
-    let hashed_password = hash(&payload.password, DEFAULT_COST)?;
-    let record = add_user(&db, &payload.username, &hashed_password).await?;
+	let hashed_password = hash(&payload.password, DEFAULT_COST)?;
+	let record = add_user(&db, &payload.username, &hashed_password).await?;
 
-    add_auth_token(&cookies, record.id().id.to_raw());
+	add_auth_token(&cookies, record.id().id.to_raw());
 
-    Ok(StatusCode::CREATED)
+	Ok(StatusCode::CREATED)
 }

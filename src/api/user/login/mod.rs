@@ -9,19 +9,19 @@ use tower_cookies::Cookies;
 
 #[derive(Debug, Deserialize)]
 pub struct LoginPayLoad {
-    pub username: String,
-    pub password: String,
+	pub username: String,
+	pub password: String,
 }
 
 pub async fn handler(
-    cookies: Cookies,
-    db: ExtensionDB,
-    payload: Json<LoginPayLoad>,
+	cookies: Cookies,
+	db: ExtensionDB,
+	payload: Json<LoginPayLoad>,
 ) -> Result<impl IntoResponse> {
-    let user_login = get_user(&db, &payload.username).await?;
+	let user_login = get_user(&db, &payload.username).await?;
 
-    verify_password(&payload.password, user_login.password()).await?;
-    add_auth_token(&cookies, user_login.id().id.to_raw());
+	verify_password(&payload.password, user_login.password()).await?;
+	add_auth_token(&cookies, user_login.id().id.to_raw());
 
-    Ok(StatusCode::CREATED)
+	Ok(StatusCode::CREATED)
 }
