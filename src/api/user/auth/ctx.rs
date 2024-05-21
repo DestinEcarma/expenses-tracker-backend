@@ -1,17 +1,17 @@
 use surrealdb::sql::Thing;
 
-pub struct RawUser {
+pub struct UserId {
     id: Thing,
 }
 
-impl RawUser {
+impl UserId {
     #[inline]
     pub fn new(id: Thing) -> Self {
         Self { id }
     }
 }
 
-impl RawUser {
+impl UserId {
     pub fn id(&self) -> &Thing {
         &self.id
     }

@@ -1,33 +1,27 @@
-mod defs;
 mod utils;
 
+use self::utils::{get_user, verify_password};
+use super::add_auth_token;
+use crate::{api::db::defs::ExtensionDB, error::Result};
 use axum::{extract::Json, http::StatusCode, response::IntoResponse};
+use serde::Deserialize;
 use tower_cookies::Cookies;
 
-use crate::api::db::defs::ExtensionDB;
-
-use self::{
-    defs::LoginPayLoad,
-    utils::{get_user, verify_password},
-};
-
-use super::utils::add_auth_token;
+#[derive(Debug, Deserialize)]
+pub struct LoginPayLoad {
+    pub username: String,
+    pub password: String,
+}
 
 pub async fn handler(
     cookies: Cookies,
     db: ExtensionDB,
     payload: Json<LoginPayLoad>,
-) -> impl IntoResponse {
-    let user_login = match get_user(&db, &payload.username).await {
-        Err(error) => return error.into_response(),
-        Ok(user) => user,
-    };
+) -> Result<impl IntoResponse> {
+    let user_login = get_user(&db, &payload.username).await?;
 
-    if let Err(error) = verify_password(&payload.password, user_login.password()).await {
-        return error.into_response();
-    }
-
+    verify_password(&payload.password, user_login.password()).await?;
     add_auth_token(&cookies, user_login.id().id.to_raw());
 
-    (StatusCode::CREATED).into_response()
+    Ok(StatusCode::CREATED)
 }

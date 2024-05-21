@@ -1,9 +1,8 @@
+use crate::{api::defs::CookieNames, error::Result};
 use axum::{http::StatusCode, response::IntoResponse};
 use tower_cookies::{cookie::time::Duration, Cookie, Cookies};
 
-use crate::api::defs::CookieNames;
-
-pub async fn handler(cookies: Cookies) -> impl IntoResponse {
+pub async fn handler(cookies: Cookies) -> Result<impl IntoResponse> {
     let mut cookie = Cookie::new(CookieNames::AUTH_TOKEN, "");
 
     cookie.set_http_only(true);
@@ -12,5 +11,5 @@ pub async fn handler(cookies: Cookies) -> impl IntoResponse {
 
     cookies.add(cookie);
 
-    (StatusCode::OK).into_response()
+    Ok(StatusCode::OK)
 }

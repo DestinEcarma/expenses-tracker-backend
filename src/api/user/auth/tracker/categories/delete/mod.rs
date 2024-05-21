@@ -1,25 +1,22 @@
-mod utils;
-
+use crate::{
+    api::db::defs::{DBGlobalQuery, DBTables, ExtensionDB},
+    error::Result,
+};
 use axum::{extract::Path, http::StatusCode, response::IntoResponse};
 use surrealdb::sql::Thing;
 
-use crate::api::{
-    db::defs::{DBTables, ExtensionDB},
-    user::auth::{ctx::RawUser, tracker::utils::category_ownership},
-};
-
-use self::utils::delete_category;
-
-pub async fn handler(db: ExtensionDB, ctx: RawUser, Path(id): Path<String>) -> impl IntoResponse {
+pub async fn handler(db: ExtensionDB, Path(id): Path<String>) -> Result<impl IntoResponse> {
     let id = Thing::from((DBTables::CATEGORY, id.as_str()));
 
-    if let Err(error) = category_ownership(&db, ctx.id(), &id).await {
-        return error.into_response();
-    }
+    delete_category(&db, &id).await?;
 
-    if let Err(error) = delete_category(&db, &id).await {
-        return error.into_response();
-    }
+    Ok(StatusCode::OK)
+}
 
-    (StatusCode::OK).into_response()
+pub async fn delete_category(db: &ExtensionDB, category_id: &Thing) -> Result<()> {
+    db.query(DBGlobalQuery::DELETE_CATEGORY)
+        .bind(("category_id", category_id))
+        .await?;
+
+    Ok(())
 }

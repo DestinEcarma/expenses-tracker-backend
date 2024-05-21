@@ -1,8 +1,7 @@
 pub mod defs;
 
-use surrealdb::opt::auth::Root;
-
 use self::defs::DB;
+use surrealdb::opt::auth::Root;
 
 pub async fn get(secrets: shuttle_runtime::SecretStore) -> DB {
     let db = surrealdb::engine::any::connect(

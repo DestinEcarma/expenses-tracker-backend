@@ -1,7 +1,3 @@
-use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use surrealdb::sql::Thing;
@@ -25,39 +21,6 @@ pub struct RecordOut {
 impl RecordOut {
     pub fn out(&self) -> &Vec<Thing> {
         &self.out
-    }
-}
-
-#[derive(Debug)]
-pub enum Error {
-    AuthFailNoAuthTokenCookie,
-    InvalidCategoryPayload,
-    InvalidUserPayload,
-    UsernameTaken,
-    NotFound,
-    Server(String),
-}
-
-impl IntoResponse for Error {
-    fn into_response(self) -> Response {
-        match self {
-            Error::AuthFailNoAuthTokenCookie => {
-                (StatusCode::UNAUTHORIZED, "AUTH_FAIL_NO_AUTH_TOKEN_COOKIE").into_response()
-            }
-            Error::InvalidCategoryPayload => {
-                (StatusCode::BAD_REQUEST, "INVALID_CATEGORY_PAYLOAD").into_response()
-            }
-            Error::UsernameTaken => (StatusCode::CONFLICT, "USERNAME_TAKEN").into_response(),
-            Error::InvalidUserPayload => {
-                (StatusCode::BAD_REQUEST, "INVALID_USERNAME_OR_PASSWORD").into_response()
-            }
-            Error::NotFound => (StatusCode::NOT_FOUND, "NOT_FOUND").into_response(),
-            Error::Server(msg) => {
-                println!("UNHANDLED_SERVER_ERROR: {msg}");
-
-                (StatusCode::INTERNAL_SERVER_ERROR, "UNHANDLED_SERVER_ERROR").into_response()
-            }
-        }
     }
 }
 

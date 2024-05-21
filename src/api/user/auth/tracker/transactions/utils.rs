@@ -4,18 +4,18 @@ use crate::{
 };
 use surrealdb::sql::Thing;
 
-pub async fn category_ownership(
+pub async fn transaction_ownership(
     db: &ExtensionDB,
-    user_id: &Thing,
     category_id: &Thing,
+    transaction_id: &Thing,
 ) -> Result<()> {
     let is_owned = db
-        .query(DBGlobalQuery::CATEGORY_OWNERSHIP)
+        .query(DBGlobalQuery::TRANSACTION_OWNERSHIP)
+        .bind(("transaction_id", transaction_id))
         .bind(("category_id", category_id))
-        .bind(("user_id", user_id))
         .await?
         .take::<Option<bool>>(0)?
-        .ok_or(Error::SurrealdbCategoryOwnershipIsNone)?;
+        .ok_or(Error::SurrealdbTransactionOwnershipIsNone)?;
 
     match is_owned {
         false => Err(Error::NotFound),

@@ -1,29 +1,37 @@
-use bcrypt::verify;
-
-use crate::api::{
-    db::defs::{DBGlobalQuery, ExtensionDB},
-    defs::Error,
+use crate::{
+    api::db::defs::{DBGlobalQuery, ExtensionDB},
+    error::{Error, Result},
 };
+use bcrypt::verify;
+use serde::Deserialize;
+use surrealdb::sql::Thing;
 
-use super::defs::UserLogin;
+#[derive(Debug, Deserialize)]
+pub struct UserLogin {
+    id: Thing,
+    password: String,
+}
 
-pub async fn get_user(db: &ExtensionDB, username: &String) -> Result<UserLogin, Error> {
-    let result = db
-        .query(DBGlobalQuery::SELECT_USER_USERNAME)
-        .bind(("username", username))
-        .await
-        .map_err(|e| Error::Server(e.to_string()))?
-        .take::<Option<UserLogin>>(0)
-        .map_err(|e| Error::Server(e.to_string()))?;
+impl UserLogin {
+    pub fn password(&self) -> &String {
+        &self.password
+    }
 
-    match result {
-        None => Err(Error::InvalidUserPayload),
-        Some(user) => Ok(user),
+    pub fn id(&self) -> &Thing {
+        &self.id
     }
 }
 
-pub async fn verify_password(password: &String, hashed_password: &String) -> Result<(), Error> {
-    match verify(password, hashed_password).map_err(|e| Error::Server(e.to_string()))? {
+pub async fn get_user(db: &ExtensionDB, username: &String) -> Result<UserLogin> {
+    db.query(DBGlobalQuery::SELECT_USER_BY_USERNAME)
+        .bind(("username", username))
+        .await?
+        .take::<Option<UserLogin>>(0)?
+        .ok_or(Error::InvalidUserPayload)
+}
+
+pub async fn verify_password(password: &String, hashed_password: &String) -> Result<()> {
+    match verify(password, hashed_password)? {
         false => Err(Error::InvalidUserPayload),
         true => Ok(()),
     }

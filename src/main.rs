@@ -1,9 +1,11 @@
 mod api;
+pub mod error;
 
 use axum::{
-    http::{header, Method},
+    http::{header, HeaderValue, Method},
     Router,
 };
+use shuttle_runtime::Environment;
 use tower_http::{
     cors::CorsLayer,
     services::{ServeDir, ServeFile},
@@ -12,9 +14,25 @@ use tower_http::{
 #[shuttle_runtime::main]
 async fn main(
     #[shuttle_runtime::Secrets] secrets: shuttle_runtime::SecretStore,
+    #[shuttle_runtime::Metadata] meta: shuttle_runtime::DeploymentMetadata,
 ) -> shuttle_axum::ShuttleAxum {
-    let cors_middleware = CorsLayer::new()
-        // .allow_origin("http://127.0.0.1:3000".parse::<HeaderValue>().unwrap())
+    let router = Router::new()
+        .nest("/api", api::router(secrets).await)
+        .fallback_service(static_route())
+        .layer(cors_middleware(meta.env));
+
+    Ok(router.into())
+}
+
+fn static_route() -> Router {
+    let serve_dir = ServeDir::new("assets").not_found_service(ServeFile::new("assets/index.html"));
+
+    Router::new().nest_service("/", serve_dir)
+}
+
+#[rustfmt::skip]
+fn cors_middleware(env: Environment) -> CorsLayer {
+    let cors = CorsLayer::new()
         .allow_headers([
             header::AUTHORIZATION,
             header::CONTENT_TYPE,
@@ -25,17 +43,8 @@ async fn main(
         .allow_credentials(true)
         .allow_methods([Method::POST, Method::GET, Method::DELETE, Method::PATCH]);
 
-    let router = Router::new()
-        .nest("/api", api::router(secrets).await)
-        .fallback_service(static_route())
-        .layer(cors_middleware);
-
-    Ok(router.into())
-}
-
-fn static_route() -> Router {
-    Router::new().nest_service(
-        "/",
-        ServeDir::new("assets").not_found_service(ServeFile::new("assets/index.html")),
-    )
+    match env {
+        Environment::Local => cors.allow_origin("http://127.0.0.1:3000".parse::<HeaderValue>().unwrap()),
+        Environment::Deployment => cors,
+    }
 }

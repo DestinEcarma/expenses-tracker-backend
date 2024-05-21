@@ -1,26 +1,25 @@
-use axum::extract::Json;
-
-use surrealdb::sql::Thing;
-
-use crate::api::{
-    db::defs::{DBGlobalQuery, ExtensionDB},
-    defs::{Error, Record},
-    user::auth::tracker::categories::defs::CategoryPayload,
+use crate::{
+    api::{
+        db::defs::{DBGlobalQuery, ExtensionDB},
+        defs::Record,
+        user::auth::tracker::categories::defs::CategoryPayload,
+    },
+    error::{Error, Result},
 };
+use axum::extract::Json;
+use surrealdb::sql::Thing;
 
 pub async fn add_category(
     db: &ExtensionDB,
     user_id: &Thing,
     payload: &Json<CategoryPayload>,
-) -> Result<Record, Error> {
+) -> Result<Record> {
     Ok(db
         .query(DBGlobalQuery::ADD_CATEGORY)
         .bind(("user_id", user_id))
         .bind(("name", &payload.name))
         .bind(("icon", &payload.icon))
-        .await
-        .map_err(|e| Error::Server(e.to_string()))?
-        .take::<Option<Record>>(0)
-        .map_err(|e| Error::Server(e.to_string()))?
-        .unwrap())
+        .await?
+        .take::<Option<Record>>(0)?
+        .ok_or(Error::SurrealdbCouldNotCreateQuery)?)
 }
