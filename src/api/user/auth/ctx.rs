@@ -1,5 +1,6 @@
 use surrealdb::sql::Thing;
 
+#[derive(Debug)]
 pub struct UserId {
 	id: Thing,
 }
