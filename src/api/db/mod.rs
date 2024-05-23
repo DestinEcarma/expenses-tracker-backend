@@ -34,7 +34,7 @@ pub async fn get(secrets: shuttle_runtime::SecretStore) -> DB {
 		.await
 		.expect("Could not use dev namespace and database");
 
-	println!("Connected to SurrealDB");
+	tracing::info!("Connected to SurrealDB");
 
 	db
 }
