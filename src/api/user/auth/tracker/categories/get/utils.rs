@@ -74,7 +74,9 @@ async fn get_transactions(db: &ExtensionDB, category_id: &Thing) -> Result<Categ
 			.take::<Option<Value>>(0)?
 			.ok_or(Error::SurrealdbSelectTransactionAmountIsNone)?;
 
-		amount += transaction["amount"].as_f64().ok_or(Error::IoError)?;
+		amount += transaction["amount"]
+			.as_f64()
+			.ok_or(Error::SurrealdbSelectTransactionAmountIsNone)?;
 	}
 
 	Ok(CategoryCal::new(amount, transactions.out().len()))
