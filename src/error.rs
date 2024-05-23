@@ -27,7 +27,6 @@ pub enum Error {
 	SurrealdbCategoryOwnershipIsNone,
 	SurrealdbSelectCategoryIsNone,
 	SurrealdbCouldNotCreateQuery,
-	IoError,
 	#[from]
 	ShuttleAxumError(shuttle_runtime::Error),
 	#[from]
@@ -36,6 +35,8 @@ pub enum Error {
 	BcryptError(bcrypt::BcryptError),
 	#[from]
 	RegexError(regex::Error),
+	#[from]
+	IoError(std::io::Error),
 }
 
 impl std::error::Error for Error {}
@@ -43,10 +44,11 @@ impl std::error::Error for Error {}
 impl IntoResponse for Error {
 	fn into_response(self) -> Response {
 		match &self {
-			Error::ShuttleAxumError(error) => println!("{self} :: {error}"),
-			Error::SurrealdbError(error) => println!("{self} :: {error}"),
-			Error::BcryptError(error) => println!("{self} :: {error}"),
-			Error::RegexError(error) => println!("{self} :: {error}"),
+			Error::ShuttleAxumError(err) => tracing::error!("{self:?} :: {err}"),
+			Error::SurrealdbError(err) => tracing::error!("{self:?} :: {err}"),
+			Error::BcryptError(err) => tracing::error!("{self:?} :: {err}"),
+			Error::RegexError(err) => tracing::error!("{self:?} :: {err}"),
+			Error::IoError(err) => tracing::error!("{self:?} :: {err}"),
 			Error::SurrealdbSelectTransactionAmountIsNone
 			| Error::SurrealdbTransactionOwnershipIsNone
 			| Error::SurrealdbSelectUserCategoriesIsNone
@@ -54,8 +56,7 @@ impl IntoResponse for Error {
 			| Error::SurrealdbSelectTransactionIsNone
 			| Error::SurrealdbCategoryOwnershipIsNone
 			| Error::SurrealdbSelectCategoryIsNone
-			| Error::IoError
-			| Error::SurrealdbCouldNotCreateQuery => println!("{self}"),
+			| Error::SurrealdbCouldNotCreateQuery => tracing::error!("{self}"),
 			_ => {
 				return (
 					self.get_status_code(),
@@ -92,11 +93,11 @@ impl fmt::Display for Error {
 			Error::SurrealdbCategoryOwnershipIsNone => write!(f, "SURREALDB_CATEGORY_OWNERSHIP_IS_NONE"),
 			Error::SurrealdbSelectCategoryIsNone => write!(f, "SURREALDB_SELECT_CATEGORY_IS_NONE"),
 			Error::SurrealdbCouldNotCreateQuery => write!(f, "SURREALDB_COULD_NOT_CREATE_QUERY"),
-			Error::IoError => write!(f, "IO_ERROR"),
 			Error::ShuttleAxumError(_) => write!(f, "SHUTTLE_AXUM_ERROR"),
 			Error::SurrealdbError(_) => write!(f, "SURREALDB_ERROR"),
 			Error::BcryptError(_) => write!(f, "BCRYPT_ERROR"),
 			Error::RegexError(_) => write!(f, "REGEX_ERROR"),
+			Error::IoError(_) => write!(f, "IO_ERROR"),
 		}
 	}
 }
