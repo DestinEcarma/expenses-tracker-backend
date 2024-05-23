@@ -4,8 +4,9 @@ mod utils;
 
 use axum::Router;
 
+#[rustfmt::skip]
 pub fn router() -> Router {
 	Router::new()
 		.nest("/categories", categories::router())
-		.nest("/category/:id/transactions", transactions::router())
+		.nest("/category/:category_id/transactions", transactions::router())
 }
