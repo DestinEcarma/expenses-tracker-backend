@@ -9,7 +9,6 @@ async-trait = "0.1.80"
 axum = "0.7.4"
 bcrypt = "0.15.1"
 derive_more = { version = "1.0.0-beta", features = ["from"] }
-dotenv = "0.15.0"
 regex = "1.10.4"
 serde = { version = "1.0.202", features = ["derive"] }
 serde_json = "1.0.117"
