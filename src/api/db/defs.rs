@@ -25,12 +25,28 @@ impl DBGlobalQuery {
 
 	// Select records
 	pub const SELECT_USER: &'static str = "SELECT id FROM $user_id";
-	pub const SELECT_TRANSACTION: &'static str = "SELECT * FROM $transaction_id";
 	pub const SELECT_CATEGORY: &'static str = "SELECT name, icon FROM $category_id";
-	pub const SELECT_TRANSACTION_AMOUNT: &'static str = "SELECT amount FROM $transaction_id";
-	pub const SELECT_USER_CATEGORIES: &'static str = "SELECT ->user_category.out as out FROM $user_id";
-	pub const SELECT_CATEGORY_TRANSACTIONS: &'static str = "SELECT ->category_transaction.out as out FROM $category_id";
 	pub const SELECT_USER_BY_USERNAME: &'static str = "SELECT id, username, password FROM user WHERE username = $username";
+
+	// Multiline queries
+	pub const SELECT_USER_CATEGORIES: &'static str = r#"
+	SELECT
+		string::split(string::concat(id), ":")[1] AS id,
+		name,
+		icon,
+		count(->category_transaction) AS transactions,
+		math::sum((SELECT VALUE out.amount FROM ->category_transaction)) AS amount
+	FROM $user_id->user_category.out;
+	"#;
+
+	pub const SELECT_CATEGORY_TRANSACTIONS: &'static str = r#"
+	SELECT
+		string::split(string::concat(id), ":")[1] AS id,
+		amount,
+		description,
+		created_at
+	FROM $category_id->category_transaction.out;
+	"#;
 
 	// Check ownership of records
 	pub const CATEGORY_OWNERSHIP: &'static str = "fn::category_ownership($user_id, $category_id)";
