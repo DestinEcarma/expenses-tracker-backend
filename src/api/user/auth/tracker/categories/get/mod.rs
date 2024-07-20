@@ -7,11 +7,10 @@ use crate::{
 };
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Thing;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Category {
-	id: Thing,
+	id: String,
 	name: String,
 	icon: String,
 	amount: f64,
