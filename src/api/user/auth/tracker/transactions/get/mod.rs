@@ -9,7 +9,7 @@ use surrealdb::sql::{Datetime, Thing};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Transaction {
-	id: Thing,
+	id: String,
 	amount: f64,
 	description: String,
 	created_at: Datetime,
