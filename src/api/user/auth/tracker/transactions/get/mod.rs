@@ -1,14 +1,10 @@
 use crate::{
-	api::{
-		db::defs::{DBGlobalQuery, DBTables, ExtensionDB},
-		defs::{merge_json, RecordOut},
-		user::auth::tracker::categories::defs::Category,
-	},
-	error::{Error, Result},
+	api::db::defs::{DBGlobalQuery, DBTables, ExtensionDB},
+	error::Result,
 };
 use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
 use surrealdb::sql::{Datetime, Thing};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -19,44 +15,32 @@ struct Transaction {
 	created_at: Datetime,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct Category {
+	name: String,
+	icon: String,
+}
+
 pub async fn handler(
 	db: ExtensionDB,
 	Path(category_id): Path<String>,
 ) -> Result<impl IntoResponse> {
 	let category_id = Thing::from((DBTables::CATEGORY, category_id.as_str()));
 
-	Ok((
-		StatusCode::OK,
-		Json(get_category_transactions(&db, &category_id).await?),
-	))
-}
-
-pub async fn get_category_transactions(db: &ExtensionDB, category: &Thing) -> Result<Value> {
 	let mut result = db
 		.query(DBGlobalQuery::SELECT_CATEGORY_TRANSACTIONS)
 		.query(DBGlobalQuery::SELECT_CATEGORY)
-		.bind(("category_id", category))
+		.bind(("category_id", category_id))
 		.await?;
 
-	let transactions = result.take::<Option<RecordOut>>(0)?.unwrap();
+	let transactions = result.take::<Vec<Transaction>>(0)?;
 	let category = result.take::<Option<Category>>(1)?.unwrap();
 
-	let mut result = Vec::<Value>::new();
-
-	for transaction in transactions.out() {
-		result.push(merge_json(
-			json!(db
-				.query(DBGlobalQuery::SELECT_TRANSACTION)
-				.bind(("transaction_id", transaction))
-				.await?
-				.take::<Option<Transaction>>(0)?
-				.ok_or(Error::SurrealdbSelectTransactionIsNone)?),
-			json!({ "id": transaction.id.to_raw() }),
-		));
-	}
-
-	Ok(json!({
-		"category": category,
-		"transactions": result
-	}))
+	Ok((
+		StatusCode::OK,
+		Json(json!({
+			"category": category,
+			"transactions": transactions
+		})),
+	))
 }
